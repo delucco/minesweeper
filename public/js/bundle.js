@@ -1398,7 +1398,7 @@ var Minerow = React.createClass({displayName: "Minerow",
       )
     })
     return (
-      React.createElement("div", {className: "minerow cf"}, 
+      React.createElement("center", {className: "minerow cf"}, 
         mines
       )
     );

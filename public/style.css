@@ -1,0 +1,40 @@
+.app {
+  border: 1px solid #d3d3d3;
+}
+
+.minefield {
+  border: 1px solid #d3d3d3;
+}
+
+.mine {
+  float: left;
+  border: 1px solid #d3d3d3;
+}
+
+.settings {
+  border: 1px solid #d3d3d3;
+  width: 100%;
+}
+
+.size {
+  width: 50%;
+}
+
+.difficulty {
+  width: 50%;
+}
+
+/*clearfix hack*/
+.cf:before,
+.cf:after {
+    content: " "; 
+    display: table; 
+}
+
+.cf:after {
+    clear: both;
+}
+
+.cf {
+    *zoom: 1;
+}

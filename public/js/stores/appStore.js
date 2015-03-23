@@ -67,7 +67,7 @@ AppDispatcher.register(function(action) {
       AppStore.emitChange();
       break;
 
-    case 'BOMBS_UNCOVERED':
+    case 'SAFETY_UNCOVERED':
       sowField(action.action.data);
       AppStore.emitChange();
       break;

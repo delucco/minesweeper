@@ -4,14 +4,14 @@ var Actions = require('../actions/actions')
 var Mine = React.createClass({
 
   select: function() {
-    Actions.select(this.props.rowNum, this.props.col);
+    Actions.selectMine(this.props.rowNum, this.props.col);
   },
 
   render: function() {
-
+    var icon = this.props.mine.bombs===1 ? 'B' : this.props.mine.threat;
     return (
-      <div className="mine" onClick={this.select}> 
-        {this.props.mine.threat}
+      <div className={cx({"uncovered": this.props.mine.revealed, "mine": true})} onClick={this.select}> 
+        {icon}
       </div>
     );
   },

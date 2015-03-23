@@ -1152,13 +1152,6 @@ var Actions = {
     Utils.checkMines(row, col);
   },
 
-  revealBombs: function(field) {
-    AppDispatcher.handleViewAction({
-      actionType: 'BOMBS_UNCOVERED',
-      data: field 
-    });
-  },
-
   setSettings: function(size, difficulty) {
     AppDispatcher.handleViewAction({
       actionType: 'NEW_SETTINGS',
@@ -1166,13 +1159,6 @@ var Actions = {
       level: difficulty
     });
     Utils.reset(size, difficulty);
-  },
-
-  resetField: function(field) {
-    AppDispatcher.handleViewAction({
-      actionType: 'FIELD_RESET',
-      data: field
-    });
   }
 
 }
@@ -1184,25 +1170,13 @@ var AppDispatcher = require('../dispatchers/appDispatcher');
 
 var completedActions = {
 
-  // selectMine: function(row, col) {
-  //   Utils.checkMines(row, col);
-  // },
 
-  revealBombs: function(field) {
+  revealSafety: function(field) {
     AppDispatcher.handleViewAction({
-      actionType: 'BOMBS_UNCOVERED',
+      actionType: 'SAFETY_UNCOVERED',
       data: field 
     });
   },
-
-  // setSettings: function(size, difficulty) {
-  //   AppDispatcher.handleViewAction({
-  //     actionType: 'NEW_SETTINGS',
-  //     size: size,
-  //     level: difficulty
-  //   });
-  //   Utils.reset(size, difficulty);
-  // },
 
   resetField: function(field) {
     AppDispatcher.handleViewAction({
@@ -1240,16 +1214,14 @@ var minefield = {
   rows: [],
 
   countBombs: function(i,j) {
-    if (i<=0 || i>=this.size-1) {
-      return 0;
-    } else if (j<=0 || j>=this.size-1) {
+    if (i<0 || i>this.size-1 || j<0 || j>this.size-1) {
       return 0;
     } else {
       return this.rows[i][j].bombs;  
     } 
   },
 
-  countNeighbors: function() {
+  calculateThreat: function() {
     for (var i=0; i<this.size; i++) {
       for (var j=0; j<this.size; j++) {
         this.rows[i][j].threat = this.countBombs(i-1,j) + this.countBombs(i-1,j+1) + this.countBombs(i-1,j-1) + this.countBombs(i,j+1) + this.countBombs(i,j-1) + this.countBombs(i+1,j-1) + this.countBombs(i+1,j) + this.countBombs(i+1,j+1); 
@@ -1278,9 +1250,34 @@ var minefield = {
       this.rows[randomRowIndex][randomColIndex].bombs = 1;
       count++;
     }
-    this.countNeighbors();
-
+    this.calculateThreat();
     callback(this.rows);
+  },
+
+  checkForMeadows: function(row, col, callback) {
+    if (row<0 || row>this.size-1 || col<0 || col>this.size-1 || this.rows[row][col].revealed === true) {
+      callback(this.rows);
+    } else if (this.rows[row][col].bombs === 1) {
+      for (var i=0; i<this.size; i++) {
+        for (var j=0; j<this.size; j++) {
+          this.rows[i][j].revealed = true;
+        }
+      }
+      callback(this.rows);
+    } else if (this.rows[row][col].threat > 0) {
+      this.rows[row][col].revealed = true;
+      callback(this.rows);
+    } else {
+      this.rows[row][col].revealed = true;
+      this.checkForMeadows(row-1, col-1, callback);
+      this.checkForMeadows(row-1, col, callback);
+      this.checkForMeadows(row-1, col+1, callback);
+      this.checkForMeadows(row, col-1, callback);
+      this.checkForMeadows(row, col+1, callback);
+      this.checkForMeadows(row+1, col-1, callback);
+      this.checkForMeadows(row+1, col, callback);
+      this.checkForMeadows(row+1, col+1, callback);
+    }
   }
 
 };
@@ -1288,7 +1285,9 @@ var minefield = {
 var utils = {
 
   checkMines: function (row, col) {
-
+    minefield.checkForMeadows(row, col, function(meadows){
+      Actions.revealSafety(meadows);
+    });
   },
 
   reset: function (size, difficulty) {
@@ -1344,14 +1343,14 @@ var Actions = require('../actions/actions')
 var Mine = React.createClass({displayName: "Mine",
 
   select: function() {
-    Actions.select(this.props.rowNum, this.props.col);
+    Actions.selectMine(this.props.rowNum, this.props.col);
   },
 
   render: function() {
-
+    var icon = this.props.mine.bombs===1 ? 'B' : this.props.mine.threat;
     return (
-      React.createElement("div", {className: "mine", onClick: this.select}, 
-        this.props.mine.threat
+      React.createElement("div", {className: cx({"uncovered": this.props.mine.revealed, "mine": true}), onClick: this.select}, 
+        icon
       )
     );
   },
@@ -1577,7 +1576,7 @@ AppDispatcher.register(function(action) {
       AppStore.emitChange();
       break;
 
-    case 'BOMBS_UNCOVERED':
+    case 'SAFETY_UNCOVERED':
       sowField(action.action.data);
       AppStore.emitChange();
       break;

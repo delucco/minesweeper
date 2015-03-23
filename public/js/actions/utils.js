@@ -22,16 +22,14 @@ var minefield = {
   rows: [],
 
   countBombs: function(i,j) {
-    if (i<=0 || i>=this.size-1) {
-      return 0;
-    } else if (j<=0 || j>=this.size-1) {
+    if (i<0 || i>this.size-1 || j<0 || j>this.size-1) {
       return 0;
     } else {
       return this.rows[i][j].bombs;  
     } 
   },
 
-  countNeighbors: function() {
+  calculateThreat: function() {
     for (var i=0; i<this.size; i++) {
       for (var j=0; j<this.size; j++) {
         this.rows[i][j].threat = this.countBombs(i-1,j) + this.countBombs(i-1,j+1) + this.countBombs(i-1,j-1) + this.countBombs(i,j+1) + this.countBombs(i,j-1) + this.countBombs(i+1,j-1) + this.countBombs(i+1,j) + this.countBombs(i+1,j+1); 
@@ -60,9 +58,34 @@ var minefield = {
       this.rows[randomRowIndex][randomColIndex].bombs = 1;
       count++;
     }
-    this.countNeighbors();
-
+    this.calculateThreat();
     callback(this.rows);
+  },
+
+  checkForMeadows: function(row, col, callback) {
+    if (row<0 || row>this.size-1 || col<0 || col>this.size-1 || this.rows[row][col].revealed === true) {
+      callback(this.rows);
+    } else if (this.rows[row][col].bombs === 1) {
+      for (var i=0; i<this.size; i++) {
+        for (var j=0; j<this.size; j++) {
+          this.rows[i][j].revealed = true;
+        }
+      }
+      callback(this.rows);
+    } else if (this.rows[row][col].threat > 0) {
+      this.rows[row][col].revealed = true;
+      callback(this.rows);
+    } else {
+      this.rows[row][col].revealed = true;
+      this.checkForMeadows(row-1, col-1, callback);
+      this.checkForMeadows(row-1, col, callback);
+      this.checkForMeadows(row-1, col+1, callback);
+      this.checkForMeadows(row, col-1, callback);
+      this.checkForMeadows(row, col+1, callback);
+      this.checkForMeadows(row+1, col-1, callback);
+      this.checkForMeadows(row+1, col, callback);
+      this.checkForMeadows(row+1, col+1, callback);
+    }
   }
 
 };
@@ -70,7 +93,9 @@ var minefield = {
 var utils = {
 
   checkMines: function (row, col) {
-
+    minefield.checkForMeadows(row, col, function(meadows){
+      Actions.revealSafety(meadows);
+    });
   },
 
   reset: function (size, difficulty) {

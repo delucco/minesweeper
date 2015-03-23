@@ -7,13 +7,6 @@ var Actions = {
     Utils.checkMines(row, col);
   },
 
-  revealBombs: function(field) {
-    AppDispatcher.handleViewAction({
-      actionType: 'BOMBS_UNCOVERED',
-      data: field 
-    });
-  },
-
   setSettings: function(size, difficulty) {
     AppDispatcher.handleViewAction({
       actionType: 'NEW_SETTINGS',
@@ -21,13 +14,6 @@ var Actions = {
       level: difficulty
     });
     Utils.reset(size, difficulty);
-  },
-
-  resetField: function(field) {
-    AppDispatcher.handleViewAction({
-      actionType: 'FIELD_RESET',
-      data: field
-    });
   }
 
 }

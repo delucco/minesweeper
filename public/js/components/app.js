@@ -1,11 +1,17 @@
 var Settings = require('./settings');
 var Minefield = require('./minefield');
-var AppStore = require('../stores/AppStore');
+var AppStore = require('../stores/appStore');
+var Actions = require('../actions/actions');
 
 var App = React.createClass({
 
   getInitialState: function() {
     return AppStore.getState();
+  },
+
+  componentDidMount: function() {
+    AppStore.addChangeListener(this._onChange);
+    Actions.setSettings('medium', 'medium');
   },
 
   render: function(){

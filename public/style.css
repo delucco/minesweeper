@@ -2,6 +2,10 @@
   border: 1px solid #d3d3d3;
 }
 
+.covered {
+  
+}
+
 .minefield {
   border: 1px solid #d3d3d3;
 }
@@ -9,6 +13,8 @@
 .mine {
   float: left;
   border: 1px solid #d3d3d3;
+  height: 20px;
+  width: 20px;
 }
 
 .settings {

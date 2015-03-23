@@ -1,16 +1,35 @@
 var AppDispatcher = require('../dispatchers/appDispatcher');
-// var Utils = require('../utils/utils');
-// var Constants = require('../constants/constants')
+var Utils = require('./utils');
 
 var Actions = {
 
   selectMine: function(row, col) {
+    Utils.checkMines(row, col);
+  },
+
+  revealBombs: function(field) {
     AppDispatcher.handleViewAction({
-      actionType: Constants.SELECTED_LIBRARY,
-      text: libraryName
+      actionType: 'BOMBS_UNCOVERED',
+      data: field 
+    });
+  },
+
+  setSettings: function(size, difficulty) {
+    AppDispatcher.handleViewAction({
+      actionType: 'NEW_SETTINGS',
+      size: size,
+      level: difficulty
+    });
+    Utils.reset(size, difficulty);
+  },
+
+  resetField: function(field) {
+    AppDispatcher.handleViewAction({
+      actionType: 'FIELD_RESET',
+      data: field
     });
   }
 
 }
 
-module.exports = Actions
+module.exports = Actions;

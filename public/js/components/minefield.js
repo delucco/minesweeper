@@ -4,14 +4,16 @@ var Minefield = React.createClass({
 
   render: function(){
     var field = this.props.minefield;
-    var rows = field.map(function(row){
+    var rows = field.map(function(row, num){
       return (
-        <center><Minerow row={row} /></center>
+        <Minerow row={row} rowNum={num} />
       )
     })
     return (
-      <div className="minefield"> 
-        {rows}
+      <div>
+        <center className="minefield"> 
+          {rows}
+        </center>
       </div>
     );
   },

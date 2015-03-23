@@ -961,7 +961,7 @@
     }
 }).call(this);
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":17}],2:[function(require,module,exports){
+},{"_process":19}],2:[function(require,module,exports){
 'use strict';
 
 function ToObject(val) {
@@ -1045,7 +1045,7 @@ function cx(classNames) {
 module.exports = cx;
 
 }).call(this,require('_process'))
-},{"./warning":5,"_process":17}],4:[function(require,module,exports){
+},{"./warning":5,"_process":19}],4:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -1142,33 +1142,181 @@ if ("production" !== process.env.NODE_ENV) {
 module.exports = warning;
 
 }).call(this,require('_process'))
-},{"./emptyFunction":4,"_process":17}],6:[function(require,module,exports){
+},{"./emptyFunction":4,"_process":19}],6:[function(require,module,exports){
 var AppDispatcher = require('../dispatchers/appDispatcher');
-// var Utils = require('../utils/utils');
-// var Constants = require('../constants/constants')
+var Utils = require('./utils');
 
 var Actions = {
 
   selectMine: function(row, col) {
+    Utils.checkMines(row, col);
+  },
+
+  revealBombs: function(field) {
     AppDispatcher.handleViewAction({
-      actionType: Constants.SELECTED_LIBRARY,
-      text: libraryName
+      actionType: 'BOMBS_UNCOVERED',
+      data: field 
+    });
+  },
+
+  setSettings: function(size, difficulty) {
+    AppDispatcher.handleViewAction({
+      actionType: 'NEW_SETTINGS',
+      size: size,
+      level: difficulty
+    });
+    Utils.reset(size, difficulty);
+  },
+
+  resetField: function(field) {
+    AppDispatcher.handleViewAction({
+      actionType: 'FIELD_RESET',
+      data: field
     });
   }
 
 }
 
-module.exports = Actions
+module.exports = Actions;
 
-},{"../dispatchers/appDispatcher":12}],7:[function(require,module,exports){
+},{"../dispatchers/appDispatcher":14,"./utils":8}],7:[function(require,module,exports){
+var AppDispatcher = require('../dispatchers/appDispatcher');
+
+var completedActions = {
+
+  // selectMine: function(row, col) {
+  //   Utils.checkMines(row, col);
+  // },
+
+  revealBombs: function(field) {
+    AppDispatcher.handleViewAction({
+      actionType: 'BOMBS_UNCOVERED',
+      data: field 
+    });
+  },
+
+  // setSettings: function(size, difficulty) {
+  //   AppDispatcher.handleViewAction({
+  //     actionType: 'NEW_SETTINGS',
+  //     size: size,
+  //     level: difficulty
+  //   });
+  //   Utils.reset(size, difficulty);
+  // },
+
+  resetField: function(field) {
+    AppDispatcher.handleViewAction({
+      actionType: 'FIELD_RESET',
+      data: field
+    });
+  }
+
+}
+
+module.exports = completedActions;
+
+},{"../dispatchers/appDispatcher":14}],8:[function(require,module,exports){
+var Actions = require('./completedActions');
+
+var sizes = {
+  small: 10,
+  medium: 20,
+  large: 40
+};
+
+var level = {
+  easy: 1,
+  medium: 2,
+  hard: 3
+};
+
+
+var minefield = {
+
+  size: sizes['meduim'],
+
+  difficulty: level['medium'],
+
+  rows: [],
+
+  countBombs: function(i,j) {
+    if (i<=0 || i>=this.size-1) {
+      return 0;
+    } else if (j<=0 || j>=this.size-1) {
+      return 0;
+    } else {
+      return this.rows[i][j].bombs;  
+    } 
+  },
+
+  countNeighbors: function() {
+    for (var i=0; i<this.size; i++) {
+      for (var j=0; j<this.size; j++) {
+        this.rows[i][j].threat = this.countBombs(i-1,j) + this.countBombs(i-1,j+1) + this.countBombs(i-1,j-1) + this.countBombs(i,j+1) + this.countBombs(i,j-1) + this.countBombs(i+1,j-1) + this.countBombs(i+1,j) + this.countBombs(i+1,j+1); 
+      }
+    }
+  },
+
+  resize: function(size, difficulty, callback) {
+    this.size = sizes[size] || this.size;
+    this.rows = [];
+    for (var i=0; i<this.size; i++) {
+      this.rows.push([])
+      for (var j=0; j<this.size; j++) {
+        this.rows[i].push({bombs: 0, revealed: false, threat: 0});
+      }
+    }
+    this.resow(difficulty, callback);
+  },
+
+  resow: function(difficulty, callback) {
+    var multiplier = level[difficulty] || this.difficulty;
+    var count = 0;
+    while (count < this.size * multiplier) {
+      var randomRowIndex = Math.floor(Math.random() * this.size);
+      var randomColIndex = Math.floor(Math.random() * this.size);
+      this.rows[randomRowIndex][randomColIndex].bombs = 1;
+      count++;
+    }
+    this.countNeighbors();
+
+    callback(this.rows);
+  }
+
+};
+
+var utils = {
+
+  checkMines: function (row, col) {
+
+  },
+
+  reset: function (size, difficulty) {
+    minefield.resize(size, difficulty, function(data){
+      Actions.resetField(data);
+    })
+  }
+
+}
+
+module.exports = utils;
+
+
+},{"./completedActions":7}],9:[function(require,module,exports){
 var Settings = require('./settings');
 var Minefield = require('./minefield');
-var AppStore = require('../stores/AppStore');
+var AppStore = require('../stores/appStore');
+var Actions = require('../actions/actions');
 
 var App = React.createClass({displayName: "App",
 
   getInitialState: function() {
     return AppStore.getState();
+  },
+
+  componentDidMount: function() {
+    AppStore.addChangeListener(this._onChange);
+    Actions.setSettings('medium', 'medium');
   },
 
   render: function(){
@@ -1189,20 +1337,21 @@ var App = React.createClass({displayName: "App",
 
 module.exports = App;
 
-},{"../stores/AppStore":15,"./minefield":9,"./settings":11}],8:[function(require,module,exports){
+},{"../actions/actions":6,"../stores/appStore":17,"./minefield":11,"./settings":13}],10:[function(require,module,exports){
 var cx = require('react/lib/cx');
 var Actions = require('../actions/actions')
 
 var Mine = React.createClass({displayName: "Mine",
 
   select: function() {
-    // Actions.select(row, col);
+    Actions.select(this.props.rowNum, this.props.col);
   },
 
   render: function() {
+
     return (
       React.createElement("div", {className: "mine", onClick: this.select}, 
-        "BOMB"
+        this.props.mine.threat
       )
     );
   },
@@ -1211,21 +1360,23 @@ var Mine = React.createClass({displayName: "Mine",
 
 module.exports = Mine;
 
-},{"../actions/actions":6,"react/lib/cx":3}],9:[function(require,module,exports){
+},{"../actions/actions":6,"react/lib/cx":3}],11:[function(require,module,exports){
 var Minerow = require('./minerow');
 
 var Minefield = React.createClass({displayName: "Minefield",
 
   render: function(){
     var field = this.props.minefield;
-    var rows = field.map(function(row){
+    var rows = field.map(function(row, num){
       return (
-        React.createElement("center", null, React.createElement(Minerow, {row: row}))
+        React.createElement(Minerow, {row: row, rowNum: num})
       )
     })
     return (
-      React.createElement("div", {className: "minefield"}, 
-        rows
+      React.createElement("div", null, 
+        React.createElement("center", {className: "minefield"}, 
+          rows
+        )
       )
     );
   },
@@ -1234,16 +1385,17 @@ var Minefield = React.createClass({displayName: "Minefield",
 
 module.exports = Minefield;
 
-},{"./minerow":10}],10:[function(require,module,exports){
+},{"./minerow":12}],12:[function(require,module,exports){
 var Mine = require('./mine');
 
 var Minerow = React.createClass({displayName: "Minerow",
 
   render: function(){
-    var row = this.props.row
-    var mines = row.map(function(mine){
+    var row = this.props.row;
+    var rowNum = this.props.rowNum;
+    var mines = row.map(function(mine, column){
       return (
-        React.createElement(Mine, {mine: mine})
+        React.createElement(Mine, {mine: mine, rowNum: rowNum, col: column})
       )
     })
     return (
@@ -1257,7 +1409,7 @@ var Minerow = React.createClass({displayName: "Minerow",
 
 module.exports = Minerow;
 
-},{"./mine":8}],11:[function(require,module,exports){
+},{"./mine":10}],13:[function(require,module,exports){
 var Settings = React.createClass({displayName: "Settings",
 
   render: function(){
@@ -1276,7 +1428,7 @@ var Settings = React.createClass({displayName: "Settings",
 
 module.exports = Settings;
 
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var Dispatcher = require('./dispatcher.js');
 var assign = require('object-assign');
 
@@ -1292,7 +1444,7 @@ var AppDispatcher = assign({}, Dispatcher.prototype, {
 
 module.exports = AppDispatcher
 
-},{"./dispatcher.js":13,"object-assign":2}],13:[function(require,module,exports){
+},{"./dispatcher.js":15,"object-assign":2}],15:[function(require,module,exports){
 var Promise = require('es6-promise').Promise;
 var assign = require('object-assign');
 
@@ -1343,7 +1495,7 @@ Dispatcher.prototype = assign({}, Dispatcher.prototype, {
 
 module.exports = Dispatcher;
 
-},{"es6-promise":1,"object-assign":2}],14:[function(require,module,exports){
+},{"es6-promise":1,"object-assign":2}],16:[function(require,module,exports){
 $(document).ready(function() {
 
   var App = require('./components/app');
@@ -1355,26 +1507,12 @@ $(document).ready(function() {
 
 });
 
-},{"./components/app":7}],15:[function(require,module,exports){
+},{"./components/app":9}],17:[function(require,module,exports){
 var AppDispatcher = require('../dispatchers/appDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
-// var Constants = require('../constants/constants')
-
 
 var CHANGE_EVENT = 'change';
-
-var sizes = {
-  small: 10,
-  medium: 20,
-  large: 40
-};
-
-var level = {
-  easy: 1,
-  medium: 2,
-  hard: 3
-};
 
 var _state = {
   settings: {
@@ -1390,42 +1528,21 @@ var _state = {
   ]
 };
 
-var minefield = {
-
-  size: sizes[_state.settings.size],
-
-  rows: [],
-
-  resize: function(size) {
-    this.size = sizes[size];
-    this.rows = [];
-    for (var i=0; i<this.size; i++) {
-      this.rows.push([])
-      for (var j=0; j<rows; j++) {
-        this.rows[i].push({bombs: 0});
-      }
-    }
-    this.resow();
-  },
-
-  resow: function(difficulty) {
-    var multiplier = level[difficulty] || level[_state.settings.difficulty];
-    var count = 0;
-    var randomIndex = Math.floor(Math.random * this.size);
-    while (count < this.size * multiplier) {
-      this.rows[randomIndex][randomIndex][bombs] = 1;
-      count++;
-    }
-    _state[minefield] = this.rows;
-  }
-
+var changeSize = function(size) {
+  _state.settings.size = size;
 };
 
+var changeLevel = function(difficulty) {
+  _state.settings.difficulty = difficulty;
+};
+
+var sowField = function(field) {
+  _state.minefield = field;
+};
 
 var AppStore = assign({}, EventEmitter.prototype, {
 
   getState: function(){
-    minefield.resize();
     return _state;
   },
 
@@ -1445,20 +1562,23 @@ var AppStore = assign({}, EventEmitter.prototype, {
 
 AppDispatcher.register(function(action) {
   switch(action.action.actionType) {
-    case Constants.SELECTED_LIBRARY:
-      text = action.action.text.trim();
-      changeLibrary(text);
+    case 'NEW_SETTINGS':
+      if (action.action.size) {
+        changeSize(action.action.size)
+      }
+      if (action.action.level) {
+        changeLevel(action.action.level)
+      }
       AppStore.emitChange();
       break;
 
-    case Constants.SELECTED_METHOD:
-      text = action.action.text.trim();
-      changeMethod(text);
+    case 'FIELD_RESET':
+      sowField(action.action.data);
       AppStore.emitChange();
       break;
 
-    case Constants.SIGN_IN:
-      AppStore.storeAuthData(action.action.data);
+    case 'BOMBS_UNCOVERED':
+      sowField(action.action.data);
       AppStore.emitChange();
       break;
   }
@@ -1466,7 +1586,7 @@ AppDispatcher.register(function(action) {
 
 module.exports = AppStore;
 
-},{"../dispatchers/appDispatcher":12,"events":16,"object-assign":2}],16:[function(require,module,exports){
+},{"../dispatchers/appDispatcher":14,"events":18,"object-assign":2}],18:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1769,7 +1889,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -1828,4 +1948,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[14]);
+},{}]},{},[16]);

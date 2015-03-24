@@ -9,13 +9,8 @@ var _state = {
     size: 'medium',
     difficulty: 'medium'
   },
-  minefield: [
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0]
-  ]
+  minefield: [],
+  gameOver: false
 };
 
 var changeSize = function(size) {
@@ -28,6 +23,10 @@ var changeLevel = function(difficulty) {
 
 var sowField = function(field) {
   _state.minefield = field;
+};
+
+var endGame = function() {
+  _state.gameOver = true;
 };
 
 var AppStore = assign({}, EventEmitter.prototype, {
@@ -66,6 +65,11 @@ AppDispatcher.register(function(action) {
       sowField(action.action.data);
       AppStore.emitChange();
       break;
+
+    case 'BOMB_TRIGGERED':
+      endGame();
+      AppStore.emitChange();
+      break;  
 
     case 'SAFETY_UNCOVERED':
       sowField(action.action.data);

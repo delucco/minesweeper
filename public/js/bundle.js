@@ -961,7 +961,7 @@
     }
 }).call(this);
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":19}],2:[function(require,module,exports){
+},{"_process":23}],2:[function(require,module,exports){
 'use strict';
 
 function ToObject(val) {
@@ -1045,7 +1045,7 @@ function cx(classNames) {
 module.exports = cx;
 
 }).call(this,require('_process'))
-},{"./warning":5,"_process":19}],4:[function(require,module,exports){
+},{"./warning":5,"_process":23}],4:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -1142,7 +1142,7 @@ if ("production" !== process.env.NODE_ENV) {
 module.exports = warning;
 
 }).call(this,require('_process'))
-},{"./emptyFunction":4,"_process":19}],6:[function(require,module,exports){
+},{"./emptyFunction":4,"_process":23}],6:[function(require,module,exports){
 var AppDispatcher = require('../dispatchers/appDispatcher');
 var Utils = require('./utils');
 
@@ -1165,11 +1165,16 @@ var Actions = {
 
 module.exports = Actions;
 
-},{"../dispatchers/appDispatcher":14,"./utils":8}],7:[function(require,module,exports){
+},{"../dispatchers/appDispatcher":18,"./utils":8}],7:[function(require,module,exports){
 var AppDispatcher = require('../dispatchers/appDispatcher');
 
 var completedActions = {
 
+  explode: function() {
+    AppDispatcher.handleViewAction({
+      actionType: 'BOMB_TRIGGERED'
+    });
+  },
 
   revealSafety: function(field) {
     AppDispatcher.handleViewAction({
@@ -1189,7 +1194,7 @@ var completedActions = {
 
 module.exports = completedActions;
 
-},{"../dispatchers/appDispatcher":14}],8:[function(require,module,exports){
+},{"../dispatchers/appDispatcher":18}],8:[function(require,module,exports){
 var Actions = require('./completedActions');
 
 var sizes = {
@@ -1200,8 +1205,8 @@ var sizes = {
 
 var level = {
   easy: 1,
-  medium: 2,
-  hard: 3
+  medium: 3,
+  hard: 5
 };
 
 
@@ -1285,6 +1290,9 @@ var minefield = {
 var utils = {
 
   checkMines: function (row, col) {
+    if (minefield.rows[row][col].bombs === 1) {
+      Actions.explode();
+    }
     minefield.checkForMeadows(row, col, function(meadows){
       Actions.revealSafety(meadows);
     });
@@ -1306,6 +1314,8 @@ var Settings = require('./settings');
 var Minefield = require('./minefield');
 var AppStore = require('../stores/appStore');
 var Actions = require('../actions/actions');
+var cx = require('react/lib/cx');
+
 
 var App = React.createClass({displayName: "App",
 
@@ -1320,8 +1330,11 @@ var App = React.createClass({displayName: "App",
 
   render: function(){
     return (
-      React.createElement("div", {className: "app clearfix"}, 
-        React.createElement("center", null, "MINESWEEPER"), 
+      React.createElement("div", {className: "app clearfix", className: cx({"game": this.state.gameOver})}, 
+        React.createElement("center", null, React.createElement("h1", null, "MINESWEEPER")), 
+        React.createElement("center", {className: cx({"hidden": !this.state.gameOver, "game": this.state.gameOver})}, 
+          React.createElement("h2", null, "GAME OVER")
+        ), 
         React.createElement(Settings, {settings: this.state.settings}), 
         React.createElement(Minefield, {minefield: this.state.minefield})
       )
@@ -1336,7 +1349,54 @@ var App = React.createClass({displayName: "App",
 
 module.exports = App;
 
-},{"../actions/actions":6,"../stores/appStore":17,"./minefield":11,"./settings":13}],10:[function(require,module,exports){
+},{"../actions/actions":6,"../stores/appStore":21,"./minefield":13,"./settings":15,"react/lib/cx":3}],10:[function(require,module,exports){
+var LevelButton = require('./levelButton');
+
+var Level = React.createClass({displayName: "Level",
+
+  render: function() {
+    var difficulty = this.props.level;
+    var buttons = ['easy', 'medium', 'hard'].map(function(choice){
+      return (
+        React.createElement(LevelButton, {level: difficulty, choice: choice})
+      )
+    });
+    return (
+      React.createElement("div", {className: "difficulty cf"}, 
+        React.createElement("h3", null, "DIFFICULTY"), 
+        buttons
+      )
+    );
+  }
+
+});
+
+module.exports = Level;
+
+},{"./levelButton":11}],11:[function(require,module,exports){
+var cx = require('react/lib/cx');
+var Actions = require('../actions/actions');
+
+var LevelButton = React.createClass({displayName: "LevelButton",
+
+  reset: function() {
+    Actions.setSettings(null, this.props.choice);
+  },
+
+  render: function() {
+    var selected = this.props.level === this.props.choice;
+    return (
+      React.createElement("div", {className: cx({"selected": selected, "button": true}), onClick: this.reset}, 
+        this.props.choice
+      )
+    );
+  }
+
+});
+
+module.exports = LevelButton;
+
+},{"../actions/actions":6,"react/lib/cx":3}],12:[function(require,module,exports){
 var cx = require('react/lib/cx');
 var Actions = require('../actions/actions')
 
@@ -1359,7 +1419,7 @@ var Mine = React.createClass({displayName: "Mine",
 
 module.exports = Mine;
 
-},{"../actions/actions":6,"react/lib/cx":3}],11:[function(require,module,exports){
+},{"../actions/actions":6,"react/lib/cx":3}],13:[function(require,module,exports){
 var Minerow = require('./minerow');
 
 var Minefield = React.createClass({displayName: "Minefield",
@@ -1384,7 +1444,7 @@ var Minefield = React.createClass({displayName: "Minefield",
 
 module.exports = Minefield;
 
-},{"./minerow":12}],12:[function(require,module,exports){
+},{"./minerow":14}],14:[function(require,module,exports){
 var Mine = require('./mine');
 
 var Minerow = React.createClass({displayName: "Minerow",
@@ -1398,7 +1458,7 @@ var Minerow = React.createClass({displayName: "Minerow",
       )
     })
     return (
-      React.createElement("center", {className: "minerow cf"}, 
+      React.createElement("div", {className: "minerow cf"}, 
         mines
       )
     );
@@ -1408,26 +1468,73 @@ var Minerow = React.createClass({displayName: "Minerow",
 
 module.exports = Minerow;
 
-},{"./mine":10}],13:[function(require,module,exports){
+},{"./mine":12}],15:[function(require,module,exports){
+var Size = require('./size');
+var Level = require('./level');
+
 var Settings = React.createClass({displayName: "Settings",
 
   render: function(){
     return (
       React.createElement("div", {className: "settings cf"}, 
-        "SETTINGS"
+        React.createElement(Size, {size: this.props.settings.size}), 
+        React.createElement(Level, {level: this.props.settings.difficulty})
       )
     );
-  },
-
-  _onChange: function() {
-    this.setState(AppStore.getSelection());
   }
 
 });
 
 module.exports = Settings;
 
-},{}],14:[function(require,module,exports){
+},{"./level":10,"./size":16}],16:[function(require,module,exports){
+var SizeButton = require('./sizeButton'); 
+
+var Size = React.createClass({displayName: "Size",
+
+  render: function() {
+    var size = this.props.size;
+    var buttons = ['small', 'medium', 'large'].map(function(choice){
+      return (
+        React.createElement(SizeButton, {size: size, choice: choice})
+      )
+    });
+    return (
+      React.createElement("div", {className: "size cf"}, 
+        React.createElement("h3", null, "SIZE"), 
+        buttons
+      )
+    );
+  }
+
+});
+
+module.exports = Size;
+
+},{"./sizeButton":17}],17:[function(require,module,exports){
+var cx = require('react/lib/cx');
+var Actions = require('../actions/actions');
+
+var SizeButton = React.createClass({displayName: "SizeButton",
+
+  reset: function() {
+    Actions.setSettings(this.props.choice);
+  },
+
+  render: function() {
+    var selected = this.props.size === this.props.choice
+    return (
+      React.createElement("div", {className: cx({"selected": selected, "button": true}), onClick: this.reset}, 
+        this.props.choice
+      )
+    );
+  }
+
+});
+
+module.exports = SizeButton;
+
+},{"../actions/actions":6,"react/lib/cx":3}],18:[function(require,module,exports){
 var Dispatcher = require('./dispatcher.js');
 var assign = require('object-assign');
 
@@ -1443,7 +1550,7 @@ var AppDispatcher = assign({}, Dispatcher.prototype, {
 
 module.exports = AppDispatcher
 
-},{"./dispatcher.js":15,"object-assign":2}],15:[function(require,module,exports){
+},{"./dispatcher.js":19,"object-assign":2}],19:[function(require,module,exports){
 var Promise = require('es6-promise').Promise;
 var assign = require('object-assign');
 
@@ -1494,7 +1601,7 @@ Dispatcher.prototype = assign({}, Dispatcher.prototype, {
 
 module.exports = Dispatcher;
 
-},{"es6-promise":1,"object-assign":2}],16:[function(require,module,exports){
+},{"es6-promise":1,"object-assign":2}],20:[function(require,module,exports){
 $(document).ready(function() {
 
   var App = require('./components/app');
@@ -1506,7 +1613,7 @@ $(document).ready(function() {
 
 });
 
-},{"./components/app":9}],17:[function(require,module,exports){
+},{"./components/app":9}],21:[function(require,module,exports){
 var AppDispatcher = require('../dispatchers/appDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
@@ -1518,13 +1625,8 @@ var _state = {
     size: 'medium',
     difficulty: 'medium'
   },
-  minefield: [
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0],
-    [0,0,0,0,0]
-  ]
+  minefield: [],
+  gameOver: false
 };
 
 var changeSize = function(size) {
@@ -1537,6 +1639,10 @@ var changeLevel = function(difficulty) {
 
 var sowField = function(field) {
   _state.minefield = field;
+};
+
+var endGame = function() {
+  _state.gameOver = true;
 };
 
 var AppStore = assign({}, EventEmitter.prototype, {
@@ -1576,6 +1682,11 @@ AppDispatcher.register(function(action) {
       AppStore.emitChange();
       break;
 
+    case 'BOMB_TRIGGERED':
+      endGame();
+      AppStore.emitChange();
+      break;  
+
     case 'SAFETY_UNCOVERED':
       sowField(action.action.data);
       AppStore.emitChange();
@@ -1585,7 +1696,7 @@ AppDispatcher.register(function(action) {
 
 module.exports = AppStore;
 
-},{"../dispatchers/appDispatcher":14,"events":18,"object-assign":2}],18:[function(require,module,exports){
+},{"../dispatchers/appDispatcher":18,"events":22,"object-assign":2}],22:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1888,7 +1999,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],19:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -1947,4 +2058,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[16]);
+},{}]},{},[20]);

@@ -8,8 +8,8 @@ var sizes = {
 
 var level = {
   easy: 1,
-  medium: 2,
-  hard: 3
+  medium: 3,
+  hard: 5
 };
 
 
@@ -93,6 +93,9 @@ var minefield = {
 var utils = {
 
   checkMines: function (row, col) {
+    if (minefield.rows[row][col].bombs === 1) {
+      Actions.explode();
+    }
     minefield.checkForMeadows(row, col, function(meadows){
       Actions.revealSafety(meadows);
     });

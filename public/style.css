@@ -2,8 +2,22 @@
   border: 1px solid #d3d3d3;
 }
 
-.minefield {
-  border: 1px solid #d3d3d3;
+.button {
+  float: left;
+  width: 30%;
+}
+
+.difficulty {
+  width: 49%;
+  float: left;
+}
+
+.game {
+  background-color: red;
+}
+
+.hidden {
+  display: none;
 }
 
 .mine {
@@ -14,22 +28,28 @@
   width: 20px;
 }
 
+.minefield {
+  border: 1px solid #d3d3d3;
+}
+
+.selected {
+  border: 1px solid #d3d3d3;
+}
+
+.settings {
+  width: 100%;
+  float: left;
+}
+
+.size {
+  width: 49%;
+  float: left;
+}
+
 .uncovered {
   background-color: white;
 }
 
-.settings {
-  border: 1px solid #d3d3d3;
-  width: 100%;
-}
-
-.size {
-  width: 50%;
-}
-
-.difficulty {
-  width: 50%;
-}
 
 /*clearfix hack*/
 .cf:before,

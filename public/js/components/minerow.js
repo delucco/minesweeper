@@ -11,9 +11,9 @@ var Minerow = React.createClass({
       )
     })
     return (
-      <center className="minerow cf"> 
+      <div className="minerow cf"> 
         {mines}
-      </center>
+      </div>
     );
   },
 

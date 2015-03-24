@@ -1645,6 +1645,10 @@ var endGame = function() {
   _state.gameOver = true;
 };
 
+var startGame = function() {
+  _state.gameOver = false;
+}
+
 var AppStore = assign({}, EventEmitter.prototype, {
 
   getState: function(){
@@ -1674,11 +1678,13 @@ AppDispatcher.register(function(action) {
       if (action.action.level) {
         changeLevel(action.action.level)
       }
+      startGame();
       AppStore.emitChange();
       break;
 
     case 'FIELD_RESET':
       sowField(action.action.data);
+      startGame();
       AppStore.emitChange();
       break;
 

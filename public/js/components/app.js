@@ -16,17 +16,37 @@ var App = React.createClass({
     Actions.setSettings('medium', 'medium');
   },
 
-  render: function(){
+  render: function() {
     return (
-      <div className="app clearfix" className={cx({"game": this.state.gameOver})}> 
+      <div className={cx({"lose": this.state.gameOver, "win": !this.state.meadowsRemaining})}> 
         <center><h1>MINESWEEPER</h1></center>
-        <center className={cx({"hidden": !this.state.gameOver, "game": this.state.gameOver})}>
-          <h2>GAME OVER</h2>
-        </center>
+        {this.renderGameStatus()}
         <Settings settings={this.state.settings} />
         <Minefield minefield={this.state.minefield} />
       </div>
     );
+  },
+
+  renderGameStatus: function() {
+    if (this.state.meadowsRemaining === 0) {
+      return (
+        <center className={cx({"win": !this.state.meadowsRemaining})}>
+          <h2>YOU WIN</h2>
+        </center>
+      )
+    } else if (this.state.gameOver) {
+      return (
+        <center className={cx({"lose": this.state.gameOver})}>
+          <h2>GAME OVER</h2>
+        </center>
+      )
+    } else {
+      return (
+        <center>
+          <h3>Remaining Safe Zones: {this.state.meadowsRemaining}</h3>
+        </center>
+      )
+    }
   },
 
   _onChange: function() {

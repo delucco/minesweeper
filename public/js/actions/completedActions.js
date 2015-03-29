@@ -8,17 +8,19 @@ var completedActions = {
     });
   },
 
-  revealSafety: function(field) {
+  revealSafety: function(field, remainder) {
     AppDispatcher.handleViewAction({
       actionType: 'SAFETY_UNCOVERED',
-      data: field 
+      data: field,
+      remainder: remainder 
     });
   },
 
-  resetField: function(field) {
+  resetField: function(field, remainder) {
     AppDispatcher.handleViewAction({
       actionType: 'FIELD_RESET',
-      data: field
+      data: field,
+      remainder: remainder
     });
   }
 

@@ -12,12 +12,12 @@
   float: left;
 }
 
-.game {
-  background-color: red;
-}
-
 .hidden {
   display: none;
+}
+
+.lose {
+  background-color: red;
 }
 
 .mine {
@@ -48,6 +48,10 @@
 
 .uncovered {
   background-color: white;
+}
+
+.win {
+  background-color: green;
 }
 
 

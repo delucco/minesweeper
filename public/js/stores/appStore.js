@@ -10,7 +10,8 @@ var _state = {
     difficulty: 'medium'
   },
   minefield: [],
-  gameOver: false
+  gameOver: false,
+  meadowsRemaining: 1
 };
 
 var changeSize = function(size) {
@@ -31,6 +32,10 @@ var endGame = function() {
 
 var startGame = function() {
   _state.gameOver = false;
+};
+
+var showRemainder = function(remainder) {
+  _state.meadowsRemaining = remainder;
 }
 
 var AppStore = assign({}, EventEmitter.prototype, {
@@ -68,6 +73,7 @@ AppDispatcher.register(function(action) {
 
     case 'FIELD_RESET':
       sowField(action.action.data);
+      showRemainder(action.action.remainder);
       startGame();
       AppStore.emitChange();
       break;
@@ -79,6 +85,7 @@ AppDispatcher.register(function(action) {
 
     case 'SAFETY_UNCOVERED':
       sowField(action.action.data);
+      showRemainder(action.action.remainder);
       AppStore.emitChange();
       break;
   }

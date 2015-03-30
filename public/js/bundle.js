@@ -1478,7 +1478,7 @@ var Minefield = React.createClass({displayName: "Minefield",
     })
     return (
       React.createElement("div", null, 
-        React.createElement("center", {className: "minefield"}, 
+        React.createElement("div", {className: "minefield"}, 
           rows
         )
       )

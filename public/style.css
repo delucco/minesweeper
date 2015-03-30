@@ -28,8 +28,14 @@
   width: 20px;
 }
 
+.minerow {
+  text-align: center;
+}
+
 .minefield {
   border: 1px solid #d3d3d3;
+  display: table;
+  margin: auto;
 }
 
 .selected {

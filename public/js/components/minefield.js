@@ -11,9 +11,9 @@ var Minefield = React.createClass({
     })
     return (
       <div>
-        <center className="minefield"> 
+        <div className="minefield"> 
           {rows}
-        </center>
+        </div>
       </div>
     );
   },
